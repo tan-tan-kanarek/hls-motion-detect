@@ -6,11 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified! Configure in package.json\" && exit 1"
   },
-  "repository": "",
+  "repository": "https://github.com/tan-tan-kanarek/hls-motion-detect",
   "keywords": [
-    "node.js"
+    "node.js",
+    "motion",
+    "detect",
+    "hls",
+    "video"
   ],
-  "author": "",
+  "author": "tan-tan",
   "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {

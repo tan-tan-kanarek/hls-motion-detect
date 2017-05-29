@@ -76,7 +76,7 @@ API enables add, delete, start and stop.
 	"width": 100, // not supported yet, defaults to 0.
 	"height": 100, // not supported yet, defaults to 0.
 	"threshold": 30, // (between 1 and 50) defaults to 35, use higher value to increase sensitivity and lower value to decrease sensitivity.
-	"maxIdleTime: 60 // time to wait since last segment detected to raise idle event (Used by RabbitMQ to remove the source).
+	"maxIdleTime": 60 // time to wait since last segment detected to raise idle event (Used by RabbitMQ to remove the source).
 }
 ```
 

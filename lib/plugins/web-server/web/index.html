@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+	crossorigin="anonymous">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+	crossorigin="anonymous">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+	crossorigin="anonymous"></script>
+<link rel="stylesheet"
+	href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+<script
+	src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+	let socket;
+	let sources;
+
+	function init() {
+		socket = io();
+
+		socket.on('error', function(err) {
+			console.error('Socket.io error:', err);
+		});
+
+		socket.on('errorMessage', function(err) {
+			console.error(err);
+		});
+
+		socket.on('list', function(list) {
+			console.log('Receive [list]: ', list);
+			sources = list;
+			reload();
+			
+			for (var systemName in sources) {
+				if(!sources[systemName].systemName) {
+					continue;
+				}
+				
+				follow(systemName);
+			}
+		});
+
+		socket.on('source-added', function(source) {
+			console.log('Receive [source-added]: ', source);
+			sources[source.systemName] = source;
+			reload();
+			follow(source.systemName);
+		});
+
+		socket.on('source-removed', function(systemName) {
+			console.log('Receive [source-removed]: ', systemName);
+			if(sources[systemName]) {
+				delete sources[systemName];
+			}
+			reload();
+		});
+
+		socket.on('start', function(systemName) {
+			console.log('Receive [start]: ', systemName);
+			if(sources[systemName]) {
+				sources[systemName].running = true;
+			}
+			reload();
+		});
+
+		socket.on('stop', function(systemName) {
+			console.log('Receive [stop]: ', systemName);
+			if(sources[systemName]) {
+				sources[systemName].running = false;
+			}
+			reload();
+		});
+
+		socket.on('record-start', function(systemName) {
+			console.log('Receive [record-start]: ', systemName);
+			if(sources[systemName]) {
+				sources[systemName].recording = true;
+			}
+			reload();
+		});
+
+		socket.on('record-stop', function(systemName) {
+			console.log('Receive [record-stop]: ', systemName);
+			if(sources[systemName]) {
+				sources[systemName].recording = false;
+			}
+			reload();
+		});
+
+		send('list');
+	}
+
+	function follow(systemName) {
+		send('follow', systemName);
+	}
+
+	function start(systemName) {
+		send('start', systemName);
+	}
+
+	function stop(systemName) {
+		send('stop', systemName);
+	}
+
+	function remove(systemName) {
+		send('remove', systemName);
+	}
+
+	function toogleRecord(btn, systemName) {
+		btn.disabled = true;
+		if(sources[systemName]) {
+			if(sources[systemName].recording) {
+				stopRecord(systemName);
+			}
+			else {
+				startRecord(systemName);
+			}
+		}
+	}
+
+	function toogleWatch(btn, systemName) {
+		btn.disabled = true;
+		if(sources[systemName]) {
+			if(sources[systemName].running) {
+				stop(systemName);
+			}
+			else {
+				start(systemName);
+			}
+		}
+	}
+	
+	function startRecord(systemName) {
+		send('start-record', systemName);
+	}
+
+	function stopRecord(systemName) {
+		send('stop-record', systemName);
+	}
+
+	function send(type, data) {
+		console.log('Sending [' + type + ']: ', data);
+		socket.emit(type, data);
+	}
+
+	function reload() {
+		let data = [];
+		for (var systemName in sources) {
+			if(!sources[systemName].systemName) {
+				continue;
+			}
+			
+			let source = sources[systemName];
+			let buttons = [];
+			buttons.push('<button type="button" class="btn" onclick="toogleWatch(this, \'' + systemName + '\');">' + (source.running ? 'Stop' : 'Start') + '</button>');
+			if(source.running) {
+				buttons.push('<button type="button" class="btn" onclick="toogleRecord(this, \'' + systemName + '\');">' + (source.recording ? 'Stop Recording' : 'Record') + '</button>');
+			}
+			buttons.push('<button type="button" class="btn" onclick="remove(\'' + systemName + '\');">Remove</button>');
+			
+			data.push({
+				name : source.name,
+				status: source.recording ? 'Recording' : source.running ? 'Watching' : 'Stopped',
+				actions: buttons.join(' ')
+			});
+		}
+		if(!data.length) {
+			data.push({});
+		}
+		jQuery('#sources').bootstrapTable('load', data);
+	}
+
+	function addStream() {
+		let systemName = jQuery('#systemName').val();
+		let name = jQuery('#name').val();
+		let sourceURL = jQuery('#sourceURL').val();
+
+		send('add', {
+			systemName : systemName,
+			name : name,
+			sourceURL : sourceURL
+		});
+
+		jQuery('#systemName').val('');
+		jQuery('#name').val('');
+		jQuery('#sourceURL').val('');
+	}
+</script>
+</head>
+<body onload="init();">
+
+	<nav class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="#">Motion Detection Dashboard</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li class="active"><a data-toggle="modal" data-target="#addStream" href="#addStream">Add
+							Stream</a></li>
+				</ul>
+			</div>
+			<!--/.nav-collapse -->
+		</div>
+	</nav>
+
+	<div id="addStream" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Add New Stream</h4>
+				</div>
+				<div class="modal-body">
+					<label for="name" class="sr-only">Name</label> <input type="url" id="name" class="form-control"
+						placeholder="Friendly Name" required="" autofocus="true"> <label for="systemName"
+						class="sr-only">System Name</label> <input type="url" id="systemName" class="form-control"
+						placeholder="System Name" required="" autofocus="true"> <label for="sourceURL"
+						class="sr-only">Source URL</label> <input type="url" id="sourceURL" class="form-control"
+						placeholder="M3U8 Source URL" required="" autofocus="true">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal" onclick="addStream();">Add</button>
+					<button type="button" class="btn" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<br />
+	<br />
+	<br />
+	<br />
+	<div>
+		<table class="table" id="sources">
+			<thead>
+				<tr>
+					<th data-field="name">Name</th>
+					<th data-field="status">Status</th>
+					<th data-field="actions"></th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+	<script type="text/javascript">
+		jQuery('#sources').bootstrapTable({data: []});
+	</script>
+</body>
+</html>

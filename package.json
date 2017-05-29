@@ -1,6 +1,6 @@
 {
   "name": "hls-motion-detect",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Motion detection based on Apple HTTP Live Stream",
   "main": "index.js",
   "scripts": {

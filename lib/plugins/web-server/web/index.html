@@ -162,9 +162,11 @@
 			let source = sources[systemName];
 			let buttons = [];
 			buttons.push('<button type="button" class="btn" onclick="toogleWatch(this, \'' + systemName + '\');">' + (source.running ? 'Stop' : 'Start') + '</button>');
+			/*
 			if(source.running) {
 				buttons.push('<button type="button" class="btn" onclick="toogleRecord(this, \'' + systemName + '\');">' + (source.recording ? 'Stop Recording' : 'Record') + '</button>');
 			}
+			*/
 			buttons.push('<button type="button" class="btn" onclick="remove(\'' + systemName + '\');">Remove</button>');
 			
 			data.push({

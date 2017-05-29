@@ -6,7 +6,11 @@ const ApiServer = require('./lib/plugins/api-server.js');
 const WebServer = require('./lib/plugins/web-server.js');
 const RabbitServer = require('./lib/plugins/rabbit-mq-server.js');
 
-let detectServer = new DetectServer()
+let detectServer = new DetectServer({
+	ffmpegPath: 'ffmpeg', 
+	ffprobePath: 'ffprobe', 
+	recordingsPath: './recorded'
+})
 .listen(1336)
 .on('source-added', (source) => {
 	console.log(`New Source added [${source.systemName}] URL [${source.sourceURL}]`);

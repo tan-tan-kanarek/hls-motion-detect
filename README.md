@@ -9,7 +9,11 @@ Watch Apple HTTP Live Stream (HLS) and record to disc mp4 files containing the c
 ```javascript
 const motion = require('hls-motion-detect');
 
-let detectServer = new motion.DetectServer()
+let detectServer = new motion.DetectServer({
+	ffmpegPath: 'ffmpeg', 
+	ffprobePath: 'ffprobe', 
+	recordingsPath: './recorded'
+})
 .listen(1336)
 .on('source-added', (source) => {
 	console.log(`New Source added [${source.systemName}] URL [${source.sourceURL}]`);
@@ -91,7 +95,7 @@ API enables add, delete, start and stop.
 ### Web UI
 You can controll the detect server using web UI:
 ```javascript
-let webServer = new WebServer(detectServer)
+let webServer = new motion.WebServer(detectServer)
 .listen({
 	port: 3888,
 	path: './lib/plugins/web-server/web', // you can change that static path to your own web folder
@@ -104,7 +108,7 @@ let webServer = new WebServer(detectServer)
 ### RabbitMQ Messages
 You add sources through RabbitMQ:
 ```javascript
-let rabbitServer = new RabbitServer(detectServer)
+let rabbitServer = new motion.RabbitServer(detectServer)
 .listen({
 //	auth: 'guest:guest',
 	host: 'localhost',

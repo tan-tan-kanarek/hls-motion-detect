@@ -1,6 +1,6 @@
 
 
-# Motion Detecttion Server
+# Motion Detection Server
 Watch Apple HTTP Live Stream (HLS) and record to disc mp4 files containing the captured motions.
 
 

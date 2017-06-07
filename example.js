@@ -5,6 +5,7 @@ const DetectServer = require('./lib/server.js');
 const ApiServer = require('./lib/plugins/api-server.js');
 const WebServer = require('./lib/plugins/web-server.js');
 const RabbitServer = require('./lib/plugins/rabbit-mq-server.js');
+const Kaltura = require('./lib/plugins/kaltura.js');
 
 let detectServer = new DetectServer({
 	ffmpegPath: 'ffmpeg', 
@@ -58,15 +59,28 @@ let webServer = new WebServer(detectServer)
 
 
 let rabbitServer = new RabbitServer(detectServer)
-.listen({
-//	auth: 'guest:guest',
-	host: 'localhost',
-//	port: 5672,
-	queue: 'stream-queue'
-})
 .on('listen', () => {
 	console.log('Rabbit-MQ server running');
 }).
 on('error', (msg) => {
 	console.error(msg);
+})
+.listen({
+//	auth: 'guest:guest',
+	host: 'localhost',
+//	port: 5672,
+	queue: 'streams'
 });
+
+
+let kaltura = new Kaltura(detectServer, {
+	partnerId: 123, // replace with your Kaltura account id
+	secret: 'your secret here'
+})
+.on('error', (msg) => {
+	console.error(msg);
+})
+.on('entry-created', (entry) => {
+	console.log(`New entry [${entry.id}] uploaded`);
+});
+

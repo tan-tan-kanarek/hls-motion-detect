@@ -6,5 +6,6 @@ module.exports = {
 	Source: require('./lib/source.js'),
 	ApiServer: require('./lib/plugins/api-server.js'),
 	WebServer: require('./lib/plugins/web-server.js'),
-	RabbitServer: require('./lib/plugins/rabbit-mq-server.js')
+	RabbitServer: require('./lib/plugins/rabbit-mq-server.js'),
+	Kaltura: require('./lib/plugins/kaltura.js')
 };

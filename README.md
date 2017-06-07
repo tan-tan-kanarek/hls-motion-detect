@@ -109,20 +109,37 @@ let webServer = new motion.WebServer(detectServer)
 You add sources through RabbitMQ:
 ```javascript
 let rabbitServer = new motion.RabbitServer(detectServer)
-.listen({
-//	auth: 'guest:guest',
-	host: 'localhost',
-//	port: 5672,
-	queue: 'stream-queue'
-})
 .on('listen', () => {
 	console.log('Rabbit-MQ server running');
 }).
 on('error', (msg) => {
 	console.error(msg);
+})
+.listen({
+//	auth: 'guest:guest',
+	host: 'localhost',
+//	port: 5672,
+	queue: 'stream-queue'
 });
 ```
 RabbitMQ plugins supports only adding new source, once the source is idle it will be removed automatically.
+
+
+### Kaltura Integration
+Kaltura plugin will automatically upload recorded files to your Kaltura account.
+```javascript
+let kaltura = new Kaltura(detectServer, {
+	partnerId: 123, // replace with your Kaltura account id
+	secret: 'your secret here'
+})
+.on('error', (msg) => {
+	console.error(msg);
+})
+.on('entry-created', (entry) => {
+	console.log(`New entry [${entry.id}] uploaded`);
+});
+```
+
 
 ### Tools
 
